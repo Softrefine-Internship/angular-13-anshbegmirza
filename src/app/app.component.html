@@ -1,20 +1,52 @@
 <div class="col-xs-12  d-flex justify-content-between p-3">
+  <!-- Div on left -->
   <div class="container-holding  w-75 ">
     <div class="d-flex justify-content-between align-items-center">
       <h2 class="title">Container Screen</h2>
-      <button class="btn btn-danger btn-sm m-2" (click)="onReset()">Clear</button>
+      <button class="btn btn-danger btn-sm m-2" (click)="onClear()">Clear</button>
     </div>
     <hr class="m-0 border-2">
     <div #containerScreen class="container-screen ">
 
     </div>
   </div>
+
+  <!-- Div on Right -->
   <div #options class="options  w-25 d-flex flex-column">
     <h2 class="title">Tile Options</h2>
     <hr class="m-0 border-2">
-    <div class="list-group tile-list p-2  h-100">
+    <div class="list-group tile-list p-2  h-100" *ngFor="let tile of tileOptions" [ngSwitch]="tile.type">
+      <div class="tile-card mb-2" *ngSwitchCase="'text'" (cdkDragEnded)="onDragEnded($event, tile)" cdkDrag>
+        <mat-form-field>
+          <mat-label>
+            {{tile.label}}
+          </mat-label>
+          <input matInput type={{tile.type}}>
+        </mat-form-field>
+      </div>
 
-      <div class="tile-card mb-2" [cdkDragBoundary]="containerScreen" (cdkDragEnded)="onDragEnded($event)" cdkDrag>
+      <div class="tile-card mb-2 p-0 " *ngSwitchCase="'image'" (cdkDragEnded)="onDragEnded($event, tile)" cdkDrag>
+        <img src={{tile.imageSrc}} class="tile-card-img" alt="">
+      </div>
+
+      <div class="tile-card mb-2" *ngSwitchCase="'dropdown'" (cdkDragEnded)="onDragEnded($event, tile)" cdkDrag>
+        <mat-form-field>
+          <mat-label>{{tile.label}}</mat-label>
+          <mat-select>
+            <mat-option *ngFor="let option of optionsSelect" [value]="option.value">
+              {{option.viewValue}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+      <div class="tile-card mb-2" *ngSwitchCase="'timer'" (cdkDragEnded)="onDragEnded($event, tile)" cdkDrag>
+        <div class="tile-card-timer">
+          {{liveTime}}
+        </div>
+      </div>
+
+      <!-- ORIGINAL -->
+      <!-- <div class="tile-card mb-2" (cdkDragEnded)="onDragEnded($event)" cdkDrag>
         <mat-form-field>
           <mat-label>
             Text Input
@@ -23,11 +55,11 @@
         </mat-form-field>
       </div>
 
-      <div class="tile-card mb-2 p-0 " [cdkDragBoundary]="containerScreen" (cdkDragEnded)="onDragEnded($event)" cdkDrag>
+      <div class="tile-card mb-2 p-0 " (cdkDragEnded)="onDragEnded($event)" cdkDrag>
         <img src="../assets/4320405.png" class="tile-card-img" alt="">
       </div>
 
-      <div class="tile-card mb-2" [cdkDragBoundary]="containerScreen" (cdkDragEnded)="onDragEnded($event)" cdkDrag>
+      <div class="tile-card mb-2" (cdkDragEnded)="onDragEnded($event)" cdkDrag>
         <mat-form-field>
           <mat-label>Select Options</mat-label>
           <mat-select>
@@ -38,12 +70,26 @@
         </mat-form-field>
       </div>
 
-      <div class="tile-card mb-2" [cdkDragBoundary]="containerScreen" (cdkDragEnded)="onDragEnded($event)" cdkDrag>
+      <div class="tile-card mb-2" (cdkDragEnded)="onDragEnded($event)" cdkDrag>
         <div class="tile-card-timer">
           {{liveTime}}
         </div>
-      </div>
+      </div> -->
 
     </div>
   </div>
+
+  <!-- Confirmation div -->
+  <div class="overlay" *ngIf="showDeleteDialog">
+    <mat-card class="delete-card">
+      <mat-card-header>
+        <mat-card-title>Are you sure you want to delete all ?</mat-card-title>
+      </mat-card-header>
+      <mat-card-actions class="d-flex justify-content-between">
+        <button class="btn btn-primary btn-sm m-2" (click)="onClear()">Cancel</button>
+        <button class="btn btn-danger btn-sm m-2" (click)="onReset()">Yes, Delete</button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
 </div>

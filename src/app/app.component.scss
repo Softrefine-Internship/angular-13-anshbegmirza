@@ -27,7 +27,7 @@ $text-color: #fff;
 }
 
 .options {
-  margin-left: 5px;
+  margin-left: 0.5rem;
 }
 
 .container-screen {
@@ -39,11 +39,6 @@ $text-color: #fff;
 }
 
 .tile {
-  // &-list {
-  //   overflow-y: auto;
-  //   overflow-x: hidden;
-  // }
-
   &-card {
     width: 100%;
     height: 100px;
@@ -59,9 +54,8 @@ $text-color: #fff;
     border-radius: 4px;
     margin-right: 25px;
     position: relative;
-    z-index: 10;
+    z-index: 1;
     box-sizing: border-box;
-    // padding: 10px;
     transition: box-shadow 200ms cubic-bezier(0, 0, 0.2, 1);
     box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2),
       0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
@@ -91,6 +85,27 @@ $text-color: #fff;
       background-color: $container-color;
     }
   }
+}
+
+.overlay {
+  z-index: 11;
+  background-color: rgba(0, 0, 0, 0.7);
+  height: 100vh;
+  width: 100vw;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+.delete-card {
+  z-index: 12;
+  height: max-content;
+  width: max-content;
+  color: #000;
+  position: absolute;
+  left: 50%;
+  bottom: 50%;
+  transform: translate(-50%, 50%);
 }
 
 ::-webkit-scrollbar {

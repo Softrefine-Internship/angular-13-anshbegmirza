@@ -11,11 +11,10 @@ import { CdkDragEnd } from '@angular/cdk/drag-drop';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent implements OnInit, OnDestroy {
-  title = 'angular-13';
-
   droppedItems: any[] = [];
-
   liveTime: Date | Number | string = new Date();
+
+  showDeleteDialog: boolean = false;
 
   optionsSelect: any[] = [
     { value: '1', viewValue: '1' },
@@ -23,21 +22,16 @@ export class AppComponent implements OnInit, OnDestroy {
     { value: '3', viewValue: '3' },
   ];
 
-  // tileOptions: any[] = [
-  //   'text',
-  //   '../assets/4320405.png',
-  //   ['1', '2', '3'],
-  //   this.liveTime,
-  // ];
+  idCounter: number = 0;
+
+  private timeSubscription: Subscription;
 
   tileOptions: any[] = [
-    { case1: 'text' },
-    { case2: '../assets/4320405.png' },
-    { case3: ['1', '2', '3'] },
-    { case4: this.liveTime },
+    { type: 'text', label: 'Text Input' },
+    { type: 'image', imageSrc: '../assets/4320405.png' },
+    { type: 'dropdown', label: 'Select Options', options: this.optionsSelect },
+    { type: 'timer', label: this.liveTime },
   ];
-
-  value = 'clear me';
 
   constructor(private dragService: DragService) {
     this.timeSubscription = timer(0, 1000)
@@ -46,8 +40,6 @@ export class AppComponent implements OnInit, OnDestroy {
         this.liveTime = now;
       });
   }
-
-  private timeSubscription: Subscription;
 
   ngOnInit() {
     this.timeSubscription = timer(0, 1000)
@@ -60,6 +52,7 @@ export class AppComponent implements OnInit, OnDestroy {
           hour12: false,
         });
       });
+    this.loadFromLocalStorage();
   }
 
   ngOnDestroy() {
@@ -68,15 +61,51 @@ export class AppComponent implements OnInit, OnDestroy {
     }
   }
 
-  onDragStart(event: DragEvent) {
-    event.dataTransfer?.setData('text/plain', 'This is the data being dragged');
+  generateID(): number {
+    return this.idCounter++;
   }
 
-  onDragEnded(event: CdkDragEnd): void {
-    console.log(event.source.getFreeDragPosition());
+  onDragStart(event: DragEvent, tile: any) {
+    const clonedTile = {
+      ...tile,
+      id: this.generateID(),
+      x: tile.x,
+      y: tile.y,
+    };
+    this.droppedItems.push(clonedTile);
+  }
+
+  onDragEnded(event: any, tile?: any): void {
+    console.log(tile);
+    const { x, y } = event.source.getFreeDragPosition();
+    console.log(x, y);
+
+    const clonedTile = {
+      ...tile,
+      id: this.generateID(),
+
+      x: x,
+      y: y,
+    };
+    this.droppedItems.push(clonedTile);
+    console.log(this.droppedItems);
+    this.saveToLocalStorage();
+  }
+
+  onClear() {
+    this.showDeleteDialog = !this.showDeleteDialog;
   }
 
   onReset() {
-    this.dragService.onResetLocalStorage();
+    localStorage.removeItem('droppedItems');
+    this.showDeleteDialog = !this.showDeleteDialog;
+  }
+
+  saveToLocalStorage() {
+    localStorage.setItem('droppedItems', JSON.stringify(this.droppedItems));
+  }
+
+  loadFromLocalStorage() {
+    // this.droppedItems = localStorage.getItem('droppedItems');
   }
 }
