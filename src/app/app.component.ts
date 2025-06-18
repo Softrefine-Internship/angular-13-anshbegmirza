@@ -38,7 +38,7 @@ export class AppComponent implements OnInit, OnDestroy {
   tileOptions: any[] = [];
 
   constructor(private dragService: DragService) {
-    console.log(this.containerScreen);
+    // console.log(this.containerScreen);
   }
 
   ngOnInit() {
@@ -85,43 +85,56 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   moveTile(event: any) {
-    // it does some work.
-    console.log(event);
+    if (!this.draggedTile) {
+      return;
+    }
 
     const screenRect =
       this.containerScreen.nativeElement.getBoundingClientRect();
-    console.log(screenRect);
-    const x = event.clientX - screenRect.left;
-    const y = event.clientY - screenRect.top;
+    console.log(
+      'screen Rect is',
+      screenRect,
+      screenRect.width,
+      screenRect.height
+    );
+    let x = event.clientX - screenRect.left;
+    let y = event.clientY - screenRect.top;
     console.log(x, y);
+    // console.log(x === screenRect.height, y === screenRect.width);
 
-    this.droppedItems.filter((id) => {
-      console.log(id);
+    if (
+      (x < 0 || y < 0 || x > screenRect.height || y > screenRect.width,
+      x === screenRect.width || y === screenRect.height)
+    ) {
+      return;
+    }
 
-      if (id.id === this.draggedTile.id) {
-        this.draggedTile = {
-          ...this.draggedTile,
-          x: x,
-          y: y,
-        };
-      }
-    });
-    console.log(this.droppedItems);
+    //right
+    if (x > 644) {
+      x = 644;
+    }
 
-    // this.draggedTile = {
-    //   ...this.draggedTile,
-    //   x: x,
-    //   y: y,
-    // };
-    this.droppedItems.push(this.draggedTile);
+    //bottom
+    if (y > 443) {
+      y = 443;
+    }
+    //left
+    if (x < 27) {
+      x = 27;
+    }
+    //top
+    if (y < 36) {
+      y = 36;
+    }
+
+    this.draggedTile.x = x;
+    this.draggedTile.y = y;
+    this.draggedTile = null;
     this.saveToLocalStorage();
   }
 
   // for left side tiles
   onDragEnded(event: any, tile?: any): void {
-    console.log(tile);
-    console.log(event.clientX, event.clientY);
-
     if (
       tile.type === 'image' &&
       this.droppedItems.some((t) => t.type === 'image')
@@ -136,7 +149,6 @@ export class AppComponent implements OnInit, OnDestroy {
 
     const screenRect =
       this.containerScreen.nativeElement.getBoundingClientRect();
-    console.log(screenRect);
     const x = event.clientX - screenRect.left;
     const y = event.clientY - screenRect.top;
     console.log(x, y);
@@ -147,10 +159,10 @@ export class AppComponent implements OnInit, OnDestroy {
       x: x,
       y: y,
     };
-    console.log(clonedTile);
+    // console.log(clonedTile);
 
     this.droppedItems.push(clonedTile);
-    console.log(this.droppedItems);
+    // console.log(this.droppedItems);
     this.saveToLocalStorage();
   }
 
@@ -162,7 +174,6 @@ export class AppComponent implements OnInit, OnDestroy {
     this.droppedItems = [];
     this.saveToLocalStorage();
     this.showDeleteDialog = !this.showDeleteDialog;
-    console.log('dropped items are', this.droppedItems);
   }
 
   saveToLocalStorage() {
@@ -171,11 +182,9 @@ export class AppComponent implements OnInit, OnDestroy {
 
   loadFromLocalStorage() {
     let saved = localStorage.getItem('droppedItems');
-    console.log(saved);
 
     if (saved) {
       this.droppedItems = JSON.parse(saved);
-      console.log('loaded from local storage', this.droppedItems);
     }
   }
 }
