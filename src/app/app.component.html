@@ -8,7 +8,7 @@
     <hr class="m-0 border-2">
     <div #containerScreen class="container-screen position-relative">
       <div *ngFor="let tile of droppedItems" class=" display-tile position-absolute" draggable="true"
-        (dragstart)="onDragStart(tile)" (dragend)="moveTile($event)"
+        (dragstart)="onDragStart($event,tile)" (dragend)="moveTile($event)"
         [ngStyle]="{'top': tile.y + 'px', 'left': tile.x + 'px'}">
 
         <ng-container [ngSwitch]="tile.type">
@@ -55,7 +55,7 @@
     </div>
 
     <div class="list-group tile-list p-2  h-100" draggable="true" (dragend)="onDragEnded($event,tile)"
-      *ngFor="let tile of tileOptions">
+      (dragstart)="onPaletteDragStart($event, tile)" *ngFor="let tile of tileOptions">
       <ng-container class="d-flex flex-column options-container" [ngSwitch]="tile.type">
         <div class="tile-card mb-2" *ngSwitchCase="'text'">
           <mat-form-field>
@@ -86,6 +86,7 @@
           </div>
         </div>
       </ng-container>
+
     </div>
   </div>
 

@@ -7,9 +7,6 @@ import {
 } from '@angular/core';
 import { Tile } from './shared/tile.model';
 import { DragService } from './shared/drag.service';
-import { Subscription, timer } from 'rxjs';
-import { map } from 'rxjs';
-import { CdkDragEnd } from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'app-root',
@@ -36,6 +33,9 @@ export class AppComponent implements OnInit, OnDestroy {
   idCounter: number = 1;
 
   tileOptions: any[] = [];
+
+  dragOffsetX: number = 0;
+  dragOffsetY: number = 0;
 
   constructor(private dragService: DragService) {
     // console.log(this.containerScreen);
@@ -78,12 +78,20 @@ export class AppComponent implements OnInit, OnDestroy {
     return this.idCounter++;
   }
 
-  onDragStart(tile: any) {
-    console.log(tile);
+  onDragStart(event: any, tile: any) {
+    // console.log(tile);
 
     this.draggedTile = tile;
+
+    this.draggedTile = tile;
+    const tileEl = event.target as HTMLElement;
+    const rect = tileEl.getBoundingClientRect();
+    this.dragOffsetX = event.clientX - rect.left;
+    this.dragOffsetY = event.clientY - rect.top;
+    // console.log(this.dragOffsetX, this.dragOffsetY);
   }
 
+  //for already placed tiles
   moveTile(event: any) {
     if (!this.draggedTile) {
       return;
@@ -91,16 +99,9 @@ export class AppComponent implements OnInit, OnDestroy {
 
     const screenRect =
       this.containerScreen.nativeElement.getBoundingClientRect();
-    console.log(
-      'screen Rect is',
-      screenRect,
-      screenRect.width,
-      screenRect.height
-    );
-    let x = event.clientX - screenRect.left;
-    let y = event.clientY - screenRect.top;
-    console.log(x, y);
-    // console.log(x === screenRect.height, y === screenRect.width);
+
+    let x = event.clientX - screenRect.left - this.dragOffsetX;
+    let y = event.clientY - screenRect.top - this.dragOffsetY;
 
     if (
       (x < 0 || y < 0 || x > screenRect.height || y > screenRect.width,
@@ -109,23 +110,29 @@ export class AppComponent implements OnInit, OnDestroy {
       return;
     }
 
-    //right
-    if (x > 644) {
-      x = 644;
-    }
+    const padding = 1;
 
-    //bottom
-    if (y > 443) {
-      y = 443;
-    }
-    //left
-    if (x < 27) {
-      x = 27;
-    }
-    //top
-    if (y < 36) {
-      y = 36;
-    }
+    const tileEl = event.target as HTMLElement;
+    const tileWidth = tileEl.offsetWidth;
+    const tileHeight = tileEl.offsetHeight;
+
+    // console.log(tileWidth, tileHeight);
+
+    // these will define the cursor placement on tile;
+    let shiftX = event.clientX - tileEl.getBoundingClientRect().left;
+    let shiftY = event.clientY - tileEl.getBoundingClientRect().top;
+
+    // console.log(`Shift coordinates are`, shiftX, shiftY);
+
+    //now change my function to fit to the cursor position
+
+    const minX = padding;
+    const minY = padding;
+    const maxX = screenRect.width - tileWidth - padding;
+    const maxY = screenRect.height - tileHeight - padding;
+
+    x = Math.max(minX, Math.min(x, maxX));
+    y = Math.max(minY, Math.min(y, maxY));
 
     this.draggedTile.x = x;
     this.draggedTile.y = y;
@@ -133,7 +140,28 @@ export class AppComponent implements OnInit, OnDestroy {
     this.saveToLocalStorage();
   }
 
-  // for left side tiles
+  onPaletteDragStart(event: any, tile: any) {
+    const tileEl = event.target as HTMLElement;
+    const rect = tileEl.getBoundingClientRect();
+    this.dragOffsetX = event.clientX - rect.left;
+    this.dragOffsetY = event.clientY - rect.top;
+
+    if (tile.type === 'image') {
+      const img = new Image();
+      img.src = tile.imageSrc;
+
+      img.style.height = '10px !important';
+      img.style.width = '10px !important';
+      // img.style.objectFit = 'contain';
+      img.style.display = 'block';
+      img.onload = () => {
+        // setDragImage(imgElement, xOffset, yOffset)
+        event.dataTransfer?.setDragImage(img, 1, 1);
+      };
+      event.dataTransfer?.setDragImage(img, 1, 1);
+    }
+  }
+
   onDragEnded(event: any, tile?: any): void {
     if (
       tile.type === 'image' &&
@@ -149,9 +177,16 @@ export class AppComponent implements OnInit, OnDestroy {
 
     const screenRect =
       this.containerScreen.nativeElement.getBoundingClientRect();
-    const x = event.clientX - screenRect.left;
-    const y = event.clientY - screenRect.top;
-    console.log(x, y);
+
+    const tileEl = event.target as HTMLElement;
+    const tileWidth = tileEl.offsetWidth;
+    const tileHeight = tileEl.offsetHeight;
+
+    let x = event.clientX - screenRect.left - this.dragOffsetX;
+    let y = event.clientY - screenRect.top - this.dragOffsetY;
+
+    x = Math.max(0, Math.min(x, screenRect.width - tileWidth));
+    y = Math.max(0, Math.min(y, screenRect.height - tileHeight));
 
     const clonedTile = {
       ...tile,
@@ -159,10 +194,8 @@ export class AppComponent implements OnInit, OnDestroy {
       x: x,
       y: y,
     };
-    // console.log(clonedTile);
 
     this.droppedItems.push(clonedTile);
-    // console.log(this.droppedItems);
     this.saveToLocalStorage();
   }
 
